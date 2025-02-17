@@ -233,54 +233,76 @@ Always provide a detailed breakdown for 'Technical Issues Identified,' 'Unsuppor
         self, 
         text: str, 
         prompt_type: str = 'factual_accuracy_verification', 
-         max_tokens: Optional[int] = 1500
-    ) -> str:
-        """
-        Process document text using OpenAI's API with specified prompt
+        max_tokens: Optional[int] = 1500
+    ):
+        # Implement token-aware text chunking
+        def chunk_text(text, max_chunk_tokens=10000):
+            """Split text into chunks that respect token limits."""
+            import tiktoken
+            
+            # Use tiktoken for accurate token counting
+            tokenizer = tiktoken.get_encoding("cl100k_base")
+            tokens = tokenizer.encode(text)
+            
+            chunks = []
+            for i in range(0, len(tokens), max_chunk_tokens):
+                chunk_tokens = tokens[i:i+max_chunk_tokens]
+                chunks.append(tokenizer.decode(chunk_tokens))
+            
+            return chunks
+
+        # Chunk the text
+        text_chunks = chunk_text(text)
         
-        :param text: Input text to analyze
-        :param prompt_type: Type of analysis to perform
-        :param max_tokens: Maximum tokens for the response
-        :return: Processed analysis result
-        """
-        # Validate input
-        if not text:
-            return "Error: No text provided for analysis."
+        results = []
+        for chunk in text_chunks:
+            try:
+                # Get the appropriate prompt
+                prompt = self._get_prompt(prompt_type)
+                
+                # Create chat completion using the new OpenAI client
+                response = self.client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": prompt},
+                        {"role": "user", "content": chunk}
+                    ],
+                    max_tokens=max_tokens
+                )
+                
+                # Safely extract result
+                result = response.choices[0].message.content.strip() if response.choices else "No response from OpenAI"
+                
+                if not result:
+                    raise ValueError("Empty response from OpenAI API")
+                
+                results.append(result)
+            
+            except Exception as e:
+                # Comprehensive error handling
+                error_details = {
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                    "prompt_type": prompt_type
+                }
+                print(f"Error processing chunk: {error_details}")
         
-        # if len(text) > 10000:
-        #     text = text[:10000]  # Limit text length to prevent excessive API calls
+        # If multiple chunks, generate a summary
+        if len(results) > 1:
+            try:
+                summary_response = self.client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Provide a concise, comprehensive summary of the following analysis results. Extract the key points, highlight main insights, and consolidate the information into a clear, coherent overview."},
+                        {"role": "user", "content": "\n\n---\n\n".join(results)}
+                    ],
+                    max_tokens=max_tokens
+                )
+                
+                summary = summary_response.choices[0].message.content.strip()
+                return f"Summary of Analysis:\n{summary}\n\nDetailed Results:\n" + "\n\n---\n\n".join(results)
+            except Exception as e:
+                print(f"Error generating summary: {e}")
         
-        try:
-            # Get the appropriate prompt
-            prompt = self._get_prompt(prompt_type)
-            
-            # Create chat completion using the new OpenAI client
-            response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": prompt},
-                    {"role": "user", "content": text}
-                ],
-                max_tokens=max_tokens
-            )
-            
-            # Safely extract result
-            result = response.choices[0].message.content.strip() if response.choices else "No response from OpenAI"
-            
-            # Additional validation of result
-            if not result:
-                raise ValueError("Empty response from OpenAI API")
-            
-            return result
-        
-        except Exception as e:
-            # Comprehensive error handling
-            error_details = {
-                "error_type": type(e).__name__,
-                "error_message": str(e),
-                "prompt_type": prompt_type
-            }
-            
-            detailed_error = f"Document Processing Error: {error_details}"
-            print(detailed_error)  # Console logging
-            return detailed_error
+        # If only one chunk or summary generation fails, return original results
+        return "\n\n".join(results)

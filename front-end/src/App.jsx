@@ -162,7 +162,7 @@ function App() {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-extrabold text-gray-900  sm:tracking-tight lg:text-4xl">
-            Fact Checker , Sources and Detail Verification
+            Fact Checker , Sources , Technical and Detail Verification
           </h1>
           <p className="mt-5 text-base text-gray-500">
             This tool is designed to guide you in refining article details,
