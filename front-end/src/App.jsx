@@ -125,7 +125,7 @@ function App() {
   const verificationTypes = [
     {
       type: "source",
-      label: "Source Verification",
+      label: "Scan for Source Verification",
       color: "indigo",
       gradient: "from-indigo-500 to-purple-500",
       Icon: VerifiedIcon,
@@ -133,7 +133,7 @@ function App() {
     },
     {
       type: "detail",
-      label: "Detail Verification",
+      label: "Scan for Detail Verification",
       color: "emerald",
       gradient: "from-emerald-500 to-teal-500",
       Icon: BookIcon,
@@ -141,7 +141,7 @@ function App() {
     },
     {
       type: "factual",
-      label: "Factual Accuracy",
+      label: "Scan for Factual Accuracy",
       color: "amber",
       gradient: "from-amber-500 to-orange-500",
       Icon: CheckCircle2Icon,
@@ -149,7 +149,7 @@ function App() {
     },
     {
       type: "technical",
-      label: "Technical Verification",
+      label: "Scan forTechnical Verification",
       color: "rose",
       gradient: "from-rose-500 to-pink-500",
       Icon: SettingsIcon,
