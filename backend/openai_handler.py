@@ -233,7 +233,7 @@ Always provide a detailed breakdown for 'Technical Issues Identified,' 'Unsuppor
         self, 
         text: str, 
         prompt_type: str = 'factual_accuracy_verification', 
-        max_tokens: Optional[int] = 500
+         max_tokens: Optional[int] = 1500
     ) -> str:
         """
         Process document text using OpenAI's API with specified prompt
