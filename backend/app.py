@@ -4,6 +4,10 @@ from document_processor import DocumentProcessor
 from openai_handler import OpenAIHandler
 import os
 import logging
+from flask import session
+from functools import wraps
+import secrets
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -62,6 +66,33 @@ def upload_document():
                 "filename": file.filename
             }
         }), 500
+
+VALID_EMAIL = "thriveteam@gmail.com"
+VALID_PASSWORD = "thriveteam2025"
+
+
+app.secret_key = secrets.token_hex(16)  
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged_in'):
+            return jsonify({"status": "error", "message": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    if email == VALID_EMAIL and password == VALID_PASSWORD:
+        session['logged_in'] = True
+        return jsonify({"status": "success", "message": "Login successful"})
+    else:
+        return jsonify({"status": "error", "message": "Invalid credentials"}), 401
+
+        
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -9,8 +9,10 @@ import {
   SettingsIcon
 } from 'lucide-react';
 import axios from 'axios';
+import Login from './Login';
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [sourceVerificationResponse, setSourceVerificationResponse] = useState("");
   const [detailVerificationResponse, setDetailVerificationResponse] = useState("");
   const [factualAccuracyResponse, setFactualAccuracyResponse] = useState("");
@@ -21,6 +23,8 @@ function App() {
   const [activeVerification, setActiveVerification] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+ 
 
   const handleFileUpload = (files) => {
     const newFiles = Array.from(files).map((file) => ({
@@ -94,7 +98,6 @@ function App() {
           analysis_type: analysisTypeMap[type]
         }
       });
-
       console.log(response.data)
 
       setExpandedVerification(type);
@@ -156,6 +159,10 @@ function App() {
       response: technicalVerificationResponse || "Technical verification results will be displayed here",
     },
   ];
+
+  if (!isLoggedIn) {
+    return <Login onLogin={setIsLoggedIn} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
